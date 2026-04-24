@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-select
     ref="select"
     :value="selectShowLabel"
@@ -40,7 +40,7 @@
 export default {
   name: 'TreeSelect',
   props: {
-    // v-model缁戝畾
+    // v-model 绑定
     value: {
       type: [String, Number, Array],
       default: '',
@@ -49,14 +49,14 @@ export default {
       type: Boolean,
       default: false,
     },
-    // 鏍戝舰鐨勬暟鎹?
+    // 树形数据
     data: {
       type: Array,
       default: function() {
         return []
       },
     },
-    // 姣忎釜鏍戣妭鐐圭敤鏉ヤ綔涓哄敮涓€鏍囪瘑鐨勫睘鎬?
+    // 每个树节点作为唯一标识的属性
     nodeKey: {
       type: [String, Number],
       default: 'depCode',
@@ -79,9 +79,9 @@ export default {
     },
     placeholder: {
       type: String,
-      default: '璇烽€夋嫨',
+      default: '请选择',
     },
-    // tree鐨刾rops閰嶇疆
+    // tree 的 props 配置
     props: {
       type: Object,
       default: function() {
@@ -114,7 +114,7 @@ export default {
   },
   methods: {
     handleNodeClick(data) {
-      // 纭繚鍙€夋嫨鏈€鍚庝竴灞傜殑鑺傜偣
+      // 确保只选择最后一层的节点
       if ((data.children && data.children.length > 0) || this.multiple) {
         return
       }
@@ -129,13 +129,13 @@ export default {
       this.$emit('input', value)
       this.$emit('node-label', nodes)
     },
-    // 鏁版嵁鍒濆鍖栭€変腑榛樿鍊?
+    // 数据初始化时选中的默认值
     init(initData) {
       if (this.data.length === 0) {
         this.selectShowLabel = this.multiple ? [] : ''
         return
       }
-      // 澶氶€?
+      // 多选
       if (this.multiple) {
         this.selectShowLabel = []
         if (this.value.length === 0) {

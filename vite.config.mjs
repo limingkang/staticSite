@@ -4,32 +4,10 @@ import vue from '@vitejs/plugin-vue2'
 
 function createManualChunks(id) {
   if (!id.includes('node_modules')) return undefined
-
-  if (
-    id.includes('/node_modules/vue/') ||
-    id.includes('/node_modules/vue-router/') ||
-    id.includes('/node_modules/vuex/') ||
-    id.includes('/node_modules/vue-i18n/')
-  ) {
-    return 'vue-vendor'
-  }
-
-  if (id.includes('/node_modules/element-ui/')) {
-    return 'element-ui'
-  }
-
-  if (
-    id.includes('/node_modules/axios/') ||
-    id.includes('/node_modules/moment/') ||
-    id.includes('/node_modules/normalize.css/')
-  ) {
-    return 'base-utils'
-  }
-
-  return 'vendor'
+  return 'element-ui'
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
   return {
     base: '/',
     plugins: [vue()],
