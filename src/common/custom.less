@@ -1,0 +1,44 @@
+html,
+body {
+  background:
+    radial-gradient(circle at top left, rgba(116, 240, 255, 0.18) 0%, transparent 34%),
+    radial-gradient(circle at top right, rgba(24, 210, 255, 0.14) 0%, transparent 28%),
+    linear-gradient(180deg, #f6faff 0%, #edf4ff 100%);
+  color: var(--common-text-primary);
+}
+
+body {
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+::selection {
+  background-color: rgba(24, 210, 255, 0.24);
+  color: var(--common-text-primary);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(24, 210, 255, 0.72) 0%, rgba(58, 102, 255, 0.72) 100%);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(24, 210, 255, 0.12);
+}
+
+#app {
+  color: var(--common-text-primary);
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+// 自定义布局样式控制
