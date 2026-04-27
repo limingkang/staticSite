@@ -4,9 +4,13 @@
       <div class="hero-bg" />
       <div class="resume-container hero-inner">
         <div class="hero-copy">
-          <p class="eyebrow">FRONTEND ENGINEER · DIGITAL EXPERIENCE</p>
+          <p class="eyebrow">
+            FRONTEND ENGINEER · DIGITAL EXPERIENCE
+          </p>
           <h1>Alex Chen</h1>
-          <p class="role">数字产品设计师 / 前端工程师 / Web 创意开发</p>
+          <p class="role">
+            数字产品设计师 / 前端工程师 / Web 创意开发
+          </p>
           <p class="intro">
             专注于构建清晰、高效、有质感的 Web 产品。擅长企业后台、数据看板、品牌展示页、复杂表单、
             组件封装与前端工程化，把复杂业务变成稳定、好用、好看的数字体验。
@@ -18,7 +22,9 @@
         </div>
 
         <div class="hero-card">
-          <div class="avatar">AC</div>
+          <div class="avatar">
+            AC
+          </div>
           <div class="hero-card__meta">
             <span>AVAILABLE FOR</span>
             <strong>Web Product Design & Development</strong>
