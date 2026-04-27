@@ -9,7 +9,7 @@ function createManualChunks(id) {
 
 export default defineConfig(() => {
   return {
-    base: '/',
+    base: '/staticSite/',
     plugins: [vue()],
     resolve: {
       alias: {

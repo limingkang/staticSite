@@ -5,7 +5,7 @@ const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
 const rootDir = __dirname
-const distDir = path.join(rootDir, 'src', 'dist')
+const distDir = path.join(rootDir, 'dist', '')
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 
 function run(command, args, options = {}) {
