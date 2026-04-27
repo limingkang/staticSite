@@ -12,6 +12,11 @@ const baseRouters = [
     component: () => import('@/views/test/test.vue'),
   },
   {
+    path: '/resume',
+    name: 'resume',
+    component: () => import('@/views/resume/resume.vue'),
+  },
+  {
     path: '*',
     redirect: '/404',
   },
