@@ -17,6 +17,11 @@ const baseRouters = [
     component: () => import('@/views/resume/resume.vue'),
   },
   {
+    path: '/word-mark',
+    name: 'wordMark',
+    component: () => import('@/views/wordMark/wordMark.vue'),
+  },
+  {
     path: '*',
     redirect: '/404',
   },
