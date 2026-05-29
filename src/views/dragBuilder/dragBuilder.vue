@@ -6,8 +6,12 @@
         <h1>简易页面生成器</h1>
       </div>
       <div class="drag-builder-header__actions">
-        <el-button size="mini" @click="resetPage">重置</el-button>
-        <el-button size="mini" type="primary" @click="previewVisible = true">预览</el-button>
+        <el-button size="mini" @click="resetPage">
+          重置
+        </el-button>
+        <el-button size="mini" type="primary" @click="previewVisible = true">
+          预览
+        </el-button>
       </div>
     </header>
 
@@ -116,8 +120,12 @@
           </div>
 
           <div class="config-actions">
-            <el-button size="mini" @click="duplicateElement">复制</el-button>
-            <el-button size="mini" @click="removeElement(activeElement.id)">删除</el-button>
+            <el-button size="mini" @click="duplicateElement">
+              复制
+            </el-button>
+            <el-button size="mini" @click="removeElement(activeElement.id)">
+              删除
+            </el-button>
           </div>
         </template>
 
