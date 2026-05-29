@@ -22,6 +22,11 @@ const baseRouters = [
     component: () => import('@/views/wordMark/wordMark.vue'),
   },
   {
+    path: '/drag-builder',
+    name: 'dragBuilder',
+    component: () => import('@/views/dragBuilder/dragBuilder.vue'),
+  },
+  {
     path: '*',
     redirect: '/404',
   },
