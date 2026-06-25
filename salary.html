@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="referrer" content="origin" />
+    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-control" content="no-cache" />
+    <meta http-equiv="Cache" content="no-cache" />
+    <link rel="icon" href="./favicon.ico" />
+    <title>今日收入计数器</title>
+    <style>
+      :root {
+        --bg: #050b11;
+        --bg-2: #07131c;
+        --panel: rgba(10, 18, 28, 0.82);
+        --panel-strong: rgba(8, 14, 22, 0.95);
+        --line: rgba(132, 242, 255, 0.16);
+        --line-soft: rgba(255, 255, 255, 0.08);
+        --text: #dce7f0;
+        --muted: #8da0af;
+        --cyan: #38f0db;
+        --cyan-soft: rgba(56, 240, 219, 0.18);
+        --gold: #ffb84d;
+        --gold-soft: rgba(255, 184, 77, 0.18);
+        --danger: #ff8f66;
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
+        --radius: 16px;
+        --ring-progress: 0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        font-family: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+          sans-serif;
+        color: var(--text);
+        background:
+          linear-gradient(180deg, #061018 0%, #07131c 46%, #05080d 100%);
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 24%),
+          repeating-linear-gradient(
+            90deg,
+            rgba(56, 240, 219, 0.05) 0 1px,
+            transparent 1px 88px
+          ),
+          repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.03) 0 1px,
+            transparent 1px 88px
+          );
+        opacity: 0.55;
+        animation: gridShift 32s linear infinite;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: -20%;
+        pointer-events: none;
+        background: linear-gradient(
+          120deg,
+          transparent 38%,
+          rgba(56, 240, 219, 0.07) 46%,
+          rgba(255, 184, 77, 0.08) 52%,
+          transparent 60%
+        );
+        animation: lightDrift 18s linear infinite;
+      }
+
+      @keyframes gridShift {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(88px);
+        }
+      }
+
+      @keyframes lightDrift {
+        from {
+          transform: translateX(-18%);
+        }
+        to {
+          transform: translateX(18%);
+        }
+      }
+
+      .app {
+        position: relative;
+        min-height: 100vh;
+        isolation: isolate;
+      }
+
+      .app-shell {
+        position: relative;
+        min-height: 100vh;
+        z-index: 1;
+      }
+
+      .topbar,
+      .scene {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 24px 28px 0;
+        position: relative;
+        z-index: 2;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+      }
+
+      .brand-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--cyan), var(--gold));
+        box-shadow:
+          0 0 0 6px rgba(56, 240, 219, 0.08),
+          0 0 24px rgba(56, 240, 219, 0.28);
+        flex: 0 0 auto;
+      }
+
+      .brand-copy {
+        min-width: 0;
+      }
+
+      .brand-title {
+        font-size: 1.08rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 1.25;
+      }
+
+      .brand-sub {
+        margin-top: 4px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .icon-btn {
+        width: 46px;
+        height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(9, 18, 28, 0.78);
+        color: var(--text);
+        display: inline-grid;
+        place-items: center;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition:
+          transform 0.18s ease,
+          border-color 0.18s ease,
+          background 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+
+      .icon-btn:hover {
+        transform: translateY(-1px);
+        border-color: rgba(56, 240, 219, 0.38);
+        background: rgba(11, 22, 34, 0.92);
+        box-shadow:
+          0 18px 32px rgba(0, 0, 0, 0.24),
+          0 0 0 1px rgba(56, 240, 219, 0.08);
+      }
+
+      .icon-btn:active {
+        transform: translateY(0);
+      }
+
+      .icon-btn:focus-visible,
+      .ghost-btn:focus-visible,
+      .save-btn:focus-visible,
+      .field input:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(56, 240, 219, 0.18);
+      }
+
+      .icon-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+
+      .icon-btn-small {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+      }
+
+      .scene {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 22px;
+        padding: 42px 28px 36px;
+      }
+
+      .status-line {
+        width: min(100%, 760px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(11, 18, 28, 0.78);
+        border: 1px solid var(--line-soft);
+        color: var(--text);
+        font-size: 0.92rem;
+        line-height: 1.2;
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+      }
+
+      .pill-soft {
+        color: var(--muted);
+      }
+
+      .money-stage {
+        position: relative;
+        width: min(100%, 760px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 12px 0 8px;
+      }
+
+      .ring {
+        position: relative;
+        width: min(88vw, 620px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+      }
+
+      .ring-track {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: conic-gradient(
+          from 210deg,
+          rgba(56, 240, 219, 0.98) 0 calc(var(--ring-progress) * 1%),
+          rgba(255, 184, 77, 0.18) calc(var(--ring-progress) * 1%) 100%
+        );
+        filter:
+          drop-shadow(0 0 26px rgba(56, 240, 219, 0.16))
+          drop-shadow(0 0 44px rgba(255, 184, 77, 0.06));
+        transform: translateZ(0);
+      }
+
+      .money-stage[data-phase="idle"] .ring-track {
+        background: conic-gradient(
+          from 210deg,
+          rgba(255, 255, 255, 0.12) 0 100%
+        );
+      }
+
+      .money-stage[data-phase="before"] .ring-track {
+        background: conic-gradient(
+          from 210deg,
+          rgba(56, 240, 219, 0.55) 0 calc(var(--ring-progress) * 1%),
+          rgba(255, 184, 77, 0.16) calc(var(--ring-progress) * 1%) 100%
+        );
+      }
+
+      .money-stage[data-phase="done"] .ring-track {
+        background: conic-gradient(
+          from 210deg,
+          rgba(255, 184, 77, 0.98) 0 calc(var(--ring-progress) * 1%),
+          rgba(56, 240, 219, 0.18) calc(var(--ring-progress) * 1%) 100%
+        );
+      }
+
+      .ring-core {
+        position: relative;
+        width: 66%;
+        height: 66%;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 50% 18%, rgba(56, 240, 219, 0.11), transparent 36%),
+          linear-gradient(180deg, rgba(8, 15, 23, 0.96), rgba(4, 9, 14, 0.98));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+          inset 0 -36px 90px rgba(0, 0, 0, 0.34),
+          0 0 0 10px rgba(255, 255, 255, 0.02);
+        z-index: 2;
+      }
+
+      .money-stage[data-phase="done"] .ring-core {
+        background:
+          radial-gradient(circle at 50% 18%, rgba(255, 184, 77, 0.14), transparent 36%),
+          linear-gradient(180deg, rgba(12, 15, 18, 0.96), rgba(7, 9, 12, 0.99));
+      }
+
+      .eyebrow {
+        font-size: 0.82rem;
+        color: var(--cyan);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+
+      .money-wrap {
+        width: 100%;
+      }
+
+      .money {
+        font-size: 4.8rem;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: 0;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        color: #f7fcff;
+        text-shadow: 0 0 26px rgba(56, 240, 219, 0.16);
+        will-change: transform, filter;
+      }
+
+      @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+        .money {
+          background: linear-gradient(90deg, #f7fcff 0%, #7cf7ff 42%, #ffd77e 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          color: transparent;
+        }
+
+        .money-stage[data-phase="before"] .money {
+          background: linear-gradient(90deg, #f3fbff 0%, #9eeeff 45%, #fff2bc 100%);
+        }
+
+      }
+
+      .money-stage[data-phase="done"] .money {
+        background: none;
+        -webkit-background-clip: border-box;
+        background-clip: border-box;
+        -webkit-text-fill-color: #ffe8a8;
+        color: #ffe8a8;
+        text-shadow:
+          0 0 16px rgba(255, 232, 168, 0.46),
+          0 0 40px rgba(255, 184, 77, 0.24);
+      }
+
+      .money.is-pulse {
+        animation: pop 0.45s ease;
+      }
+
+      .speed {
+        margin-top: 12px;
+        font-size: 0.96rem;
+        color: var(--muted);
+      }
+
+      .done-banner {
+        display: none;
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 184, 77, 0.22);
+        background:
+          linear-gradient(135deg, rgba(255, 184, 77, 0.16), rgba(56, 240, 219, 0.08)),
+          rgba(8, 14, 22, 0.72);
+        color: #fff4d8;
+        font-size: 1rem;
+        line-height: 1.55;
+        font-weight: 700;
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.03),
+          0 18px 40px rgba(0, 0, 0, 0.18);
+      }
+
+      .money-stage[data-phase="done"] .done-banner {
+        display: block;
+      }
+
+      .money-stage[data-phase="done"] .speed {
+        color: rgba(255, 232, 183, 0.72);
+      }
+
+      .spark-layer {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      .spark {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--color, var(--cyan));
+        box-shadow:
+          0 0 10px currentColor,
+          0 0 18px currentColor;
+        opacity: 0.95;
+        transform: translate(-50%, -50%);
+        animation: sparkFly var(--dur, 900ms) ease-out forwards;
+        will-change: transform, opacity;
+      }
+
+      .spark::after {
+        content: "";
+        position: absolute;
+        inset: -3px;
+        border-radius: inherit;
+        background: radial-gradient(circle, currentColor 0 25%, transparent 65%);
+        opacity: 0.4;
+      }
+
+      .scanline {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: min(72vw, 520px);
+        height: 1px;
+        transform: translateX(-50%);
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(56, 240, 219, 0.8),
+          rgba(255, 184, 77, 0.85),
+          transparent
+        );
+        filter: blur(0.4px);
+        opacity: 0.34;
+        animation: scanFloat 5.2s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      .stats {
+        width: min(100%, 760px);
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .stat {
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(8, 14, 22, 0.62);
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+        backdrop-filter: blur(14px);
+      }
+
+      .stat-label {
+        font-size: 0.82rem;
+        color: var(--muted);
+        line-height: 1.2;
+      }
+
+      .stat-value {
+        font-size: 1.04rem;
+        font-weight: 700;
+        line-height: 1.25;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .footer-note {
+        width: min(100%, 760px);
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+        text-align: center;
+        padding-top: 4px;
+      }
+
+      .modal-mask {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(4, 8, 13, 0.72);
+        backdrop-filter: blur(12px);
+        z-index: 20;
+      }
+
+      .modal {
+        width: min(100%, 520px);
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(10, 18, 28, 0.96);
+        box-shadow: 0 28px 70px rgba(0, 0, 0, 0.44);
+        padding: 22px;
+      }
+
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .modal-title {
+        font-size: 1.22rem;
+        font-weight: 800;
+        line-height: 1.25;
+      }
+
+      .modal-sub {
+        margin-top: 6px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 14px;
+        font-size: 0.95rem;
+      }
+
+      .field span {
+        color: var(--text);
+      }
+
+      .field input {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(6, 11, 17, 0.88);
+        color: var(--text);
+        padding: 13px 14px;
+        font: inherit;
+        line-height: 1.2;
+      }
+
+      .field input::placeholder {
+        color: rgba(141, 160, 175, 0.72);
+      }
+
+      .field input:focus {
+        border-color: rgba(56, 240, 219, 0.5);
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .ghost-btn,
+      .save-btn {
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font: inherit;
+        cursor: pointer;
+        transition:
+          transform 0.18s ease,
+          filter 0.18s ease,
+          opacity 0.18s ease;
+      }
+
+      .ghost-btn {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .save-btn {
+        color: #081019;
+        font-weight: 800;
+        background: linear-gradient(135deg, rgba(56, 240, 219, 0.96), rgba(255, 184, 77, 0.96));
+        box-shadow: 0 12px 24px rgba(56, 240, 219, 0.14);
+      }
+
+      .ghost-btn:hover,
+      .save-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .form-tip {
+        margin-top: 12px;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+
+      .form-tip.is-error {
+        color: var(--danger);
+      }
+
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 30;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(10, 18, 28, 0.96);
+        color: var(--text);
+        box-shadow: var(--shadow);
+        transform: translateY(8px);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.18s ease,
+          transform 0.18s ease;
+      }
+
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      @keyframes pop {
+        0% {
+          transform: scale(1);
+          filter: brightness(1);
+        }
+        35% {
+          transform: scale(1.025);
+          filter: brightness(1.12);
+        }
+        100% {
+          transform: scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      @keyframes sparkFly {
+        0% {
+          transform: translate(-50%, -50%) scale(0.9);
+          opacity: 0.95;
+        }
+        100% {
+          transform:
+            translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
+            scale(0.1);
+          opacity: 0;
+        }
+      }
+
+      @keyframes scanFloat {
+        0%,
+        100% {
+          top: 22%;
+          opacity: 0.16;
+        }
+        50% {
+          top: 78%;
+          opacity: 0.58;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .topbar {
+          padding: 20px 18px 0;
+        }
+
+        .scene {
+          padding-inline: 18px;
+        }
+
+        .stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .money {
+          font-size: 3.4rem;
+        }
+
+        .ring {
+          width: min(92vw, 520px);
+        }
+      }
+
+      @media (max-width: 560px) {
+        .brand-sub {
+          display: none;
+        }
+
+        .status-line {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .pill {
+          justify-content: center;
+        }
+
+        .money {
+          font-size: 2.72rem;
+        }
+
+        .ring-core {
+          width: 72%;
+          height: 72%;
+          padding: 18px;
+        }
+
+        .eyebrow {
+          margin-bottom: 10px;
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+        }
+
+        .modal {
+          padding: 18px;
+          border-radius: 16px;
+        }
+
+        .modal-actions {
+          flex-direction: column;
+        }
+
+        .ghost-btn,
+        .save-btn {
+          width: 100%;
+        }
+
+        .toast {
+          left: 18px;
+          right: 18px;
+          bottom: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="app-shell">
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-dot"></span>
+            <div class="brand-copy">
+              <div class="brand-title">今日收入计数器</div>
+              <div class="brand-sub">根据你的班次，实时计算已经赚到的钱</div>
+            </div>
+          </div>
+          <button class="icon-btn" id="configBtn" type="button" aria-label="打开配置" title="配置">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Zm8.5-3.5a6.9 6.9 0 0 0-.1-1.08l2.05-1.58-2.02-3.51-2.5 1a7.2 7.2 0 0 0-1.86-1.07L15.7 3h-4.4l-.37 2.76c-.66.24-1.3.6-1.86 1.07l-2.5-1-2.02 3.51 2.05 1.58a6.9 6.9 0 0 0 0 2.16l-2.05 1.58 2.02 3.51 2.5-1c.56.47 1.2.83 1.86 1.07L11.3 21h4.4l.37-2.76c.66-.24 1.3-.6 1.86-1.07l2.5 1 2.02-3.51-2.05-1.58c.07-.36.1-.73.1-1.08Z"
+              />
+            </svg>
+          </button>
+        </header>
+
+        <main class="scene">
+          <div class="status-line">
+            <span class="pill" id="statusText">请先填写配置</span>
+            <span class="pill pill-soft" id="clockText">--:--:--</span>
+          </div>
+
+          <section class="money-stage" id="moneyStage" data-phase="idle">
+            <div
+              class="scanline"
+              aria-hidden="true"
+            ></div>
+            <div class="ring">
+              <div class="ring-track" id="progressRing" style="--ring-progress: 0"></div>
+              <div class="ring-core">
+                <div class="money-wrap">
+                  <div class="eyebrow">今日已赚</div>
+                  <div class="money" id="moneyText">¥0.00</div>
+                  <div class="speed" id="speedText">¥0.0000 / 秒</div>
+                  <div class="done-banner" id="doneBanner">
+                    窝囊费全部挣到，今天这个破班就上到这里了
+                  </div>
+                </div>
+              </div>
+              <div class="spark-layer" id="sparkLayer" aria-hidden="true"></div>
+            </div>
+          </section>
+
+          <section class="stats" aria-label="收入详情">
+            <div class="stat">
+              <span class="stat-label">上班时段</span>
+              <strong class="stat-value" id="shiftText">--:-- - --:--</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">每天工资</span>
+              <strong class="stat-value" id="dailyText">¥0.00</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">今日进度</span>
+              <strong class="stat-value" id="progressText">0.0%</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">剩余到顶</span>
+              <strong class="stat-value" id="remainingText">¥0.00</strong>
+            </div>
+          </section>
+
+          <div class="footer-note" id="footerNote">
+            右上角配置你的日薪和工时，数据会自动保存到本地。
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="modal-mask" id="modalMask" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div>
+            <div class="modal-title" id="modalTitle">配置收入</div>
+            <!-- <div class="modal-sub">保存后会写入本地缓存，下次打开自动恢复</div> -->
+          </div>
+          <button class="icon-btn icon-btn-small" id="closeBtn" type="button" aria-label="关闭配置" title="关闭">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M18.3 5.71 12 12.01l-6.3-6.3-1.4 1.42 6.29 6.29-6.29 6.29 1.41 1.41 6.29-6.29 6.3 6.29 1.41-1.41-6.3-6.29 6.3-6.29z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <form id="configForm" novalidate>
+          <label class="field" for="dailyInput">
+            <span>每天挣多少钱</span>
+            <input
+              id="dailyInput"
+              name="dailyPay"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="例如 1000"
+              required
+            />
+          </label>
+
+          <label class="field" for="startInput">
+            <span>上班开始时间</span>
+            <input
+              id="startInput"
+              name="startTime"
+              type="time"
+              step="60"
+              required
+            />
+          </label>
+
+          <label class="field" for="endInput">
+            <span>上班结束时间</span>
+            <input
+              id="endInput"
+              name="endTime"
+              type="time"
+              step="60"
+              required
+            />
+          </label>
+
+          <div class="modal-actions">
+            <button class="ghost-btn" id="cancelBtn" type="button">取消</button>
+            <button class="save-btn" type="submit">保存并生效</button>
+          </div>
+
+          <div class="form-tip" id="formTip">例如：日薪 1000，09:00 开始，18:00 结束。</div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <script>
+      const STORAGE_KEY = 'salary-money-clock-v1'
+
+      const moneyStage = document.getElementById('moneyStage')
+      const progressRing = document.getElementById('progressRing')
+      const moneyText = document.getElementById('moneyText')
+      const speedText = document.getElementById('speedText')
+      const shiftText = document.getElementById('shiftText')
+      const dailyText = document.getElementById('dailyText')
+      const progressText = document.getElementById('progressText')
+      const remainingText = document.getElementById('remainingText')
+      const statusText = document.getElementById('statusText')
+      const clockText = document.getElementById('clockText')
+      const footerNote = document.getElementById('footerNote')
+      const sparkLayer = document.getElementById('sparkLayer')
+      const doneBanner = document.getElementById('doneBanner')
+      const modalMask = document.getElementById('modalMask')
+      const configBtn = document.getElementById('configBtn')
+      const closeBtn = document.getElementById('closeBtn')
+      const cancelBtn = document.getElementById('cancelBtn')
+      const configForm = document.getElementById('configForm')
+      const dailyInput = document.getElementById('dailyInput')
+      const startInput = document.getElementById('startInput')
+      const endInput = document.getElementById('endInput')
+      const formTip = document.getElementById('formTip')
+      const toast = document.getElementById('toast')
+
+      const state = {
+        hasSaved: false,
+        config: {
+          dailyPay: '',
+          startTime: '',
+          endTime: '',
+        },
+        lastSecond: -1,
+        toastTimer: 0,
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value))
+      }
+
+      function pad(value) {
+        return String(value).padStart(2, '0')
+      }
+
+      function normalizeTime(value) {
+        const match = /^(\d{1,2}):(\d{2})$/.exec(String(value || '').trim())
+        if (!match) return ''
+        const hours = clamp(Number(match[1]), 0, 23)
+        const minutes = clamp(Number(match[2]), 0, 59)
+        return `${pad(hours)}:${pad(minutes)}`
+      }
+
+      function parseMinutes(value) {
+        const time = normalizeTime(value)
+        if (!time) return NaN
+        const [hours, minutes] = time.split(':').map(Number)
+        return hours * 60 + minutes
+      }
+
+      function formatMoney(value) {
+        return `¥${Number(value || 0).toLocaleString('zh-CN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`
+      }
+
+      function formatRate(value) {
+        return `¥${Number(value || 0).toLocaleString('zh-CN', {
+          minimumFractionDigits: 4,
+          maximumFractionDigits: 4,
+        })}`
+      }
+
+      function readConfig() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY)
+          if (!raw) return null
+          const parsed = JSON.parse(raw)
+          const dailyPay = Number(parsed.dailyPay)
+          const startTime = normalizeTime(parsed.startTime)
+          const endTime = normalizeTime(parsed.endTime)
+          if (!Number.isFinite(dailyPay) || dailyPay < 0 || !startTime || !endTime || startTime === endTime) {
+            return null
+          }
+          return {
+            dailyPay,
+            startTime,
+            endTime,
+          }
+        } catch (error) {
+          return null
+        }
+      }
+
+      function saveConfig(config) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
+      }
+
+      function setStatus(message, isError = false) {
+        formTip.textContent = message
+        formTip.classList.toggle('is-error', Boolean(isError))
+      }
+
+      function setText(node, value) {
+        if (node.textContent !== value) {
+          node.textContent = value
+        }
+      }
+
+      function openModal() {
+        modalMask.hidden = false
+        requestAnimationFrame(() => {
+          dailyInput.focus()
+          dailyInput.select()
+        })
+      }
+
+      function closeModal() {
+        modalMask.hidden = true
+        setStatus('例如：日薪 1000，09:00 开始，18:00 结束。')
+      }
+
+      function fillForm(config) {
+        dailyInput.value = config && config.dailyPay !== '' ? Number(config.dailyPay).toFixed(2) : ''
+        startInput.value = config?.startTime || ''
+        endInput.value = config?.endTime || ''
+      }
+
+      function emitBurst(intensity = 6) {
+        const colors = ['#38f0db', '#ffb84d', '#d7fbff']
+        for (let index = 0; index < intensity; index += 1) {
+          const spark = document.createElement('i')
+          const angle = Math.random() * Math.PI * 2
+          const distance = 68 + Math.random() * 140
+          spark.className = 'spark'
+          spark.style.setProperty('--tx', `${Math.cos(angle) * distance}px`)
+          spark.style.setProperty('--ty', `${Math.sin(angle) * distance - 36}px`)
+          spark.style.setProperty('--dur', `${860 + Math.random() * 460}ms`)
+          spark.style.setProperty('--color', colors[index % colors.length])
+          sparkLayer.appendChild(spark)
+          spark.addEventListener(
+            'animationend',
+            () => {
+              spark.remove()
+            },
+            { once: true }
+          )
+        }
+      }
+
+      function pulseMoney() {
+        moneyText.classList.remove('is-pulse')
+        void moneyText.offsetWidth
+        moneyText.classList.add('is-pulse')
+        emitBurst(5)
+      }
+
+      function showToast(message) {
+        window.clearTimeout(state.toastTimer)
+        toast.hidden = false
+        toast.textContent = message
+        requestAnimationFrame(() => {
+          toast.classList.add('show')
+        })
+        state.toastTimer = window.setTimeout(() => {
+          toast.classList.remove('show')
+          window.setTimeout(() => {
+            toast.hidden = true
+          }, 180)
+        }, 2200)
+      }
+
+      function calcEarnings(now, config) {
+        const dailyPay = Math.max(0, Number(config.dailyPay) || 0)
+        const startMin = parseMinutes(config.startTime)
+        const endMin = parseMinutes(config.endTime)
+        const nowMin =
+          now.getHours() * 60 +
+          now.getMinutes() +
+          now.getSeconds() / 60 +
+          now.getMilliseconds() / 60000
+        const overnight = endMin <= startMin
+        const durationMin = overnight ? endMin + 1440 - startMin : endMin - startMin
+
+        if (!Number.isFinite(durationMin) || durationMin <= 0) {
+          return {
+            dailyPay,
+            startMin,
+            endMin,
+            earned: 0,
+            progress: 0,
+            perSecond: 0,
+            remaining: dailyPay,
+            status: '配置无效',
+            phase: 'idle',
+          }
+        }
+
+        let earned = 0
+        let progress = 0
+        let status = '等待配置'
+        let phase = 'idle'
+
+        if (!overnight) {
+          if (nowMin < startMin) {
+            earned = 0
+            progress = 0
+            status = '未到上班时间'
+            phase = 'before'
+          } else if (nowMin >= endMin) {
+            earned = dailyPay
+            progress = 1
+            status = '窝囊费全部挣到'
+            phase = 'done'
+          } else {
+            progress = (nowMin - startMin) / durationMin
+            earned = dailyPay * progress
+            status = '正在赚钱'
+            phase = 'active'
+          }
+        } else if (nowMin >= startMin || nowMin < endMin) {
+          const elapsed = nowMin >= startMin ? nowMin - startMin : nowMin + 1440 - startMin
+          progress = elapsed / durationMin
+          earned = dailyPay * progress
+          status = nowMin >= startMin ? '夜班进行中' : '跨天结算中'
+          phase = 'active'
+        } else {
+          earned = dailyPay
+          progress = 1
+          status = '窝囊费全部挣到'
+          phase = 'done'
+        }
+
+        earned = clamp(earned, 0, dailyPay)
+        progress = clamp(progress, 0, 1)
+
+        return {
+          dailyPay,
+          startMin,
+          endMin,
+          earned,
+          progress,
+          perSecond: dailyPay / (durationMin * 60),
+          remaining: dailyPay - earned,
+          status,
+          phase,
+        }
+      }
+
+      function syncView() {
+        const now = new Date()
+        const second = Math.floor(now.getTime() / 1000)
+        const timeText = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+        setText(clockText, timeText)
+
+        let view = {
+          dailyPay: 0,
+          startMin: 0,
+          endMin: 0,
+          earned: 0,
+          progress: 0,
+          perSecond: 0,
+          remaining: 0,
+          status: '请先填写配置',
+          phase: 'idle',
+        }
+
+        if (state.hasSaved) {
+          view = calcEarnings(now, state.config)
+        }
+
+        moneyStage.dataset.phase = view.phase
+        progressRing.style.setProperty('--ring-progress', (view.progress * 100).toFixed(3))
+
+        setText(moneyText, formatMoney(view.earned))
+        setText(speedText, view.phase === 'done' ? '今日收入已封顶' : `${formatRate(view.perSecond)} / 秒`)
+        setText(shiftText, state.hasSaved ? `${state.config.startTime} - ${state.config.endTime}` : '--:-- - --:--')
+        setText(dailyText, state.hasSaved ? formatMoney(view.dailyPay) : '¥0.00')
+        setText(progressText, `${(view.progress * 100).toFixed(1)}%`)
+        setText(remainingText, view.phase === 'done' ? '¥0.00' : formatMoney(view.remaining))
+        setText(statusText, state.hasSaved ? view.status : '请先填写配置')
+        doneBanner.textContent = '窝囊费全部挣到，今天这个破班就上到这里了'
+
+        if (state.hasSaved) {
+          footerNote.textContent =
+            view.phase === 'done'
+              ? '今天已经到顶，明天再继续开工。'
+              : ''
+        } else {
+          footerNote.textContent = '右上角先填一组日薪和工时，页面会自动记住。'
+        }
+
+        document.title = `${formatMoney(view.earned)} · 今日收入计数器`
+
+        if (second !== state.lastSecond) {
+          state.lastSecond = second
+          if (state.hasSaved && view.phase === 'active') {
+            pulseMoney()
+          }
+        }
+
+        requestAnimationFrame(syncView)
+      }
+
+      configBtn.addEventListener('click', () => {
+        fillForm(state.hasSaved ? state.config : null)
+        setStatus('例如：日薪 1000，09:00 开始，18:00 结束。')
+        openModal()
+      })
+
+      closeBtn.addEventListener('click', closeModal)
+      cancelBtn.addEventListener('click', closeModal)
+
+      modalMask.addEventListener('click', (event) => {
+        if (event.target === modalMask) {
+          closeModal()
+        }
+      })
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modalMask.hidden) {
+          closeModal()
+        }
+      })
+
+      configForm.addEventListener('submit', (event) => {
+        event.preventDefault()
+
+        const dailyPay = Number.parseFloat(dailyInput.value)
+        const startTime = normalizeTime(startInput.value)
+        const endTime = normalizeTime(endInput.value)
+
+        if (!Number.isFinite(dailyPay) || dailyPay < 0) {
+          setStatus('日薪必须是 0 或更大的数字。', true)
+          dailyInput.focus()
+          return
+        }
+
+        if (!startTime || !endTime) {
+          setStatus('请把开始时间和结束时间都填完整。', true)
+          return
+        }
+
+        if (startTime === endTime) {
+          setStatus('开始时间和结束时间不能相同。', true)
+          return
+        }
+
+        state.config = {
+          dailyPay,
+          startTime,
+          endTime,
+        }
+        state.hasSaved = true
+
+        saveConfig(state.config)
+        closeModal()
+        showToast('已保存到本地缓存')
+        emitBurst(10)
+        pulseMoney()
+      })
+
+      const savedConfig = readConfig()
+      if (savedConfig) {
+        state.hasSaved = true
+        state.config = savedConfig
+        fillForm(savedConfig)
+      } else {
+        fillForm(null)
+        openModal()
+      }
+
+      requestAnimationFrame(syncView)
+    </script>
+  </body>
+</html>
